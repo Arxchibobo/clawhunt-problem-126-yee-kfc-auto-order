@@ -1,0 +1,2 @@
+playwright>=1.40
+python-crontab>=3.0

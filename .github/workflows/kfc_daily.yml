@@ -1,0 +1,89 @@
+name: KFC Daily Order
+
+on:
+  schedule:
+    # Runs at 02:30 UTC daily (10:30 CST = UTC+8)
+    - cron: '30 2 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  order:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Restore cookies from secrets
+        env:
+          KFC_COOKIES_JSON: ${{ secrets.KFC_COOKIES_JSON }}
+        run: |
+          echo "$KFC_COOKIES_JSON" > cookies.json
+
+      - name: Update config with store ID
+        env:
+          KFC_STORE_ID: ${{ secrets.KFC_STORE_ID }}
+        run: |
+          # Update store_id in config.json if secret is set
+          if [ -n "$KFC_STORE_ID" ]; then
+            python -c "
+import json
+with open('config.json', 'r') as f:
+    config = json.load(f)
+config['store_id'] = '$KFC_STORE_ID'
+with open('config.json', 'w') as f:
+    json.dump(config, f, indent=2, ensure_ascii=False)
+            "
+          fi
+
+      - name: Run KFC auto-order
+        run: |
+          python kfc_auto_order.py
+
+      - name: Upload order screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: order-screenshots-${{ github.run_number }}
+          path: orders/*.png
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload order records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: order-records-${{ github.run_number }}
+          path: orders/*.json
+          retention-days: 90
+          if-no-files-found: ignore
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ github.run_number }}
+          path: |
+            cron.log
+            alert.log
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::KFC order failed - check artifacts for details"
+          cat alert.log 2>/dev/null || echo "No alert.log found"

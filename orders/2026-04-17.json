@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-04-17T08:55:15.927977",
+  "status": "success",
+  "details": {
+    "mode": "demo",
+    "product": "中杯拿铁",
+    "store": "信创园店"
+  },
+  "config": {
+    "store_name": "信创园店",
+    "product_keyword": "中杯拿铁"
+  }
+}

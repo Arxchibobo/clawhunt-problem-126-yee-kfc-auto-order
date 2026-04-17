@@ -1,0 +1,19 @@
+{
+  "store_name": "信创园店",
+  "store_id": "",
+  "product_keyword": "中杯拿铁",
+  "product_size": "中杯",
+  "kfc_account": {
+    "phone": "YOUR_PHONE",
+    "password": "YOUR_PASSWORD"
+  },
+  "cookie_file": "cookies.json",
+  "payment_method": "wechat",
+  "order_time": "10:30",
+  "timezone": "Asia/Shanghai",
+  "alert": {
+    "type": "log",
+    "log_file": "alert.log"
+  },
+  "dry_run": false
+}
